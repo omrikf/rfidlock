@@ -8,7 +8,9 @@ MFRC522 mfrc522(SS_PIN,RST_PIN);  // /Create MFRC522 instance
 Servo myservo;
 
 //The card ID to which we will grant access
-byte knownCard[] = {0x33, 0xDB, 0xA2, 0xF7};
+
+
+byte knownCard[] = {0xB9, 0xAA, 0x97, 0x84};
 void setup() {
 // put your setup code here, to run once:
 Serial.begin(9600); // Initialize serial communications with the PC
@@ -21,6 +23,7 @@ Serial.println(F("Scan PICC to see UID, SAK, type, and data blocks..."));
 myservo.attach(3);
 }
 
+int isLocked=0;//1 is locked
 void loop() {
 // check if a card is near the reader
 if ( ! mfrc522.PICC_IsNewCardPresent()) {
@@ -32,13 +35,17 @@ return;
 }
 // check if the card has access
 if(compareUID(mfrc522.uid.uidByte, knownCard, mfrc522.uid.size)) {
-  Serial.println("Access granted!");
-  myservo.write(0);
-  delay(1000);
-  myservo.write(90);
-  delay(1000);
-  myservo.write(180);
-  delay(1000);
+  if(isLocked==1){
+    myservo.write(0);
+    delay(1000);
+    Serial.println("Opening lock!");
+    isLocked=0;
+  }else{//open
+    myservo.write(90);
+    delay(1000);    
+    Serial.println("Locking lock!");
+    isLocked=1;
+  }
 } else {
 Serial.println("Access Denied!!");
 }
