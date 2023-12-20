@@ -12,43 +12,44 @@ Servo myservo;
 
 byte knownCard[] = {0xB9, 0xAA, 0x97, 0x84};
 void setup() {
-// put your setup code here, to run once:
-Serial.begin(9600); // Initialize serial communications with the PC
-while (!Serial); // Do nothing if no serial port is opened (added for Arduinos based on ATMEGA32U4)
-SPI.begin(); // Init SPI bus
-mfrc522.PCD_Init(); // Init MFRC522
-delay(4); // Optional delay. Some board do need more time after init to be ready, see Readme
-mfrc522.PCD_DumpVersionToSerial(); // Show details of PCD - MFRC522 Card Reader details
-Serial.println(F("Scan PICC to see UID, SAK, type, and data blocks..."));
-myservo.attach(3);
+  // put your setup code here, to run once:
+  Serial.begin(9600); // Initialize serial communications with the PC
+  while (!Serial); // Do nothing if no serial port is opened (added for Arduinos based on ATMEGA32U4)
+  SPI.begin(); // Init SPI bus
+  mfrc522.PCD_Init(); // Init MFRC522
+  delay(4); // Optional delay. Some board do need more time after init to be ready, see Readme
+  mfrc522.PCD_DumpVersionToSerial(); // Show details of PCD - MFRC522 Card Reader details
+  Serial.println(F("Scan PICC to see UID, SAK, type, and data blocks..."));
+  myservo.attach(3);
 }
 
 int isLocked=0;//1 is locked
 void loop() {
-// check if a card is near the reader
-if ( ! mfrc522.PICC_IsNewCardPresent()) {
-return;
-}
-// read the card ID
-if ( ! mfrc522.PICC_ReadCardSerial()) {
-return;
-}
-// check if the card has access
-if(compareUID(mfrc522.uid.uidByte, knownCard, mfrc522.uid.size)) {
-  if(isLocked==1){
-    myservo.write(0);
-    delay(1000);
-    Serial.println("Opening lock!");
-    isLocked=0;
-  }else{//open
-    myservo.write(90);
-    delay(1000);    
-    Serial.println("Locking lock!");
-    isLocked=1;
+  // check if a card is near the reader
+  if ( ! mfrc522.PICC_IsNewCardPresent()) {
+  return;
   }
-} else {
-Serial.println("Access Denied!!");
-}
+  // read the card ID
+  if ( ! mfrc522.PICC_ReadCardSerial()) {
+    return;
+  }
+  // check if the card has access
+  if(compareUID(mfrc522.uid.uidByte, knownCard, mfrc522.uid.size)) {
+    if(isLocked==1){                                                                     
+      myservo.write(0);
+      delay(1000);
+      Serial.println("Opening lock!");
+      isLocked=0;
+      delay(5000);
+    }else{//open
+      myservo.write(90);
+      delay(1000);    
+      Serial.println("Locking lock!");
+      isLocked=1;
+    }
+  } else {
+  Serial.println("Access Denied!!");
+  }
 }
 //a helper function to compare cards' id
 bool compareUID(byte* uid1, byte* uid2, byte size) {
